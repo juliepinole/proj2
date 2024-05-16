@@ -25,6 +25,8 @@ _FLOAT_FOUR = [
 _PERCENT_ZERO = [
     '0',
     '1',
+    '1.0',
+    '0.0',
 ]
 _PERCENT_ONE = [
     'Accuracy',

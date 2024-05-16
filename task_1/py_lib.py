@@ -19,8 +19,10 @@ def pre_process_ecg(
     :return: x_train_0, x_test_0, y_train_0, y_test_0
     """
 
-    df_label = df.iloc[:, label_col_pos]
-    df_time_series = df.drop(df.columns[label_col_pos], axis=1)
+    df_aux = df.copy()
+    df_aux.index.name = 'patient_idx'
+    df_label = df_aux.iloc[:, label_col_pos].to_frame()
+    df_time_series = df_aux.drop(df_aux.columns[label_col_pos], axis=1)
     # Step 3: Split test/ train
     if split_data:
         x_train_0, x_test_0, y_train_0, y_test_0 = train_test_split(
