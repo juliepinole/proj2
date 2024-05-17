@@ -43,7 +43,7 @@ def plot_multiple_heartbeats(
     for idx_plt, idx_htb in enumerate(final_idx_to_plot):
         i, j = divmod(idx_plt, ncols)
         axs[i,j].plot(df.loc[idx_htb, :])
-        axs[i,j].set_xlabel('Time (milliseconds)', fontsize = fontsize['xlabel'])
+        axs[i,j].set_xlabel('Time', fontsize = fontsize['xlabel'])
         axs[i,j].set_title(f'Index Heartbeat {idx_htb}', fontsize = fontsize['ax_title'])
 
     fig.suptitle(suptitle)
@@ -174,7 +174,7 @@ def plot_superposed_heartbeats(
     for idx, signal in epochs_dict.items():
         if idx in final_idx_to_plot:
             ax.plot(signal)
-    ax.set_xlabel('Time (milliseconds)', fontsize = fontsize['xlabel'])
+    ax.set_xlabel('Time', fontsize = fontsize['xlabel'])
     ax.set_title(title, fontsize = fontsize['ax_title'])
     fig.show()
 
@@ -223,6 +223,6 @@ def plot_mean_sd_heartbeats(
             label='Standard Deviation ' + key,
         )
 
-    ax.set_xlabel('Time (milliseconds)', fontsize = fontsize['xlabel'])
+    ax.set_xlabel('Time', fontsize = fontsize['xlabel'])
     ax.set_title(title, fontsize = fontsize['ax_title'])
     fig.show()
