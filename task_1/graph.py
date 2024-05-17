@@ -5,6 +5,7 @@ import seaborn as sns
 import random
 from pandas.api.types import is_string_dtype
 from pandas.api.types import is_numeric_dtype
+import py_lib as lib
 
 
 def plot_multiple_heartbeats(
@@ -139,4 +140,89 @@ def dist_mult_plots(
         j += 1
         axs[i,j].set_visible(False)
     fig.tight_layout()
+    fig.show()
+
+
+def plot_superposed_heartbeats(
+    epochs_dict: dict,
+    figsize: tuple = (7, 7),
+    title: str = 'Superposed Heartbeats',
+    fontsize: dict = {
+        'ax_title': 12,
+        'xlabel': 8,
+    },
+    sampling_epochs: int = 10,
+    by_outcome: str = None,
+    idx_by_class: dict = None,
+    ):
+    fig, ax = plt.subplots(figsize=figsize)
+    possible_idx = list(epochs_dict.keys())
+
+    # Keeping only the indexes of the outcome of interest is by_outcome is specified.
+    if by_outcome is not None:
+        possible_idx = [idx for idx in possible_idx if idx in idx_by_class[by_outcome]]
+        title = title + ' by outcome ' + str(by_outcome)
+    
+    # Sampling some heartbeats if sampling_epochs is specified.
+    if sampling_epochs is not None:
+        n_samples = min(sampling_epochs, len(epochs_dict))
+        final_idx_to_plot = random.sample(possible_idx, n_samples)
+    else:
+        final_idx_to_plot = possible_idx
+
+    # Plotting
+    for idx, signal in epochs_dict.items():
+        if idx in final_idx_to_plot:
+            ax.plot(signal)
+    ax.set_xlabel('Time (milliseconds)', fontsize = fontsize['xlabel'])
+    ax.set_title(title, fontsize = fontsize['ax_title'])
+    fig.show()
+
+
+def plot_mean_sd_heartbeats(
+    ecg_cleaned_df: pd.DataFrame,
+    figsize: tuple = (7, 7),
+    title: str = 'Mean & Standard Deviation Heartbeats',
+    fontsize: dict = {
+        'ax_title': 12,
+        'xlabel': 8,
+    },
+    by_outcome: str = None,
+    idx_by_class: dict = None,
+    sd_magnitude: dict = {
+        '68%': {'factor': 1, 'alpha': 0.5},
+         '95%': {'factor': 2, 'alpha': 0.25},
+    },
+):
+    fig, ax = plt.subplots(figsize=figsize)
+    # possible_idx = list(ecg_cleaned_df.index)
+
+    # Keeping only the indexes of the outcome of interest is by_outcome is specified.
+    if by_outcome is not None:
+        # possible_idx = [idx for idx in possible_idx if idx in idx_by_class[by_outcome]]
+        title = title + ' by outcome ' + str(by_outcome)
+        ecg_cleaned_df_aux = ecg_cleaned_df.loc[ecg_cleaned_df.index.isin(idx_by_class[by_outcome])].copy()
+    else:
+        ecg_cleaned_df_aux = ecg_cleaned_df.copy()
+    
+    # Computing mean and standard deviation
+    ecg_mean_sd = lib.mean_and_sd_df(ecg_cleaned_df_aux)
+
+    # Plotting the mean
+    ax.plot(ecg_mean_sd.columns, ecg_mean_sd.loc['mean', :], label='Mean')
+
+    # Plotting the standard deviation intervals
+    for key, value in sd_magnitude.items():
+        ecg_mean_sd.loc['upper', :] = ecg_mean_sd.loc['mean', :] + value['factor'] * ecg_mean_sd.loc['sd', :]
+        ecg_mean_sd.loc['lower', :] = ecg_mean_sd.loc['mean', :] - value['factor'] * ecg_mean_sd.loc['sd', :]
+        ax.fill_between(
+            ecg_mean_sd.columns,
+            ecg_mean_sd.loc['upper', :],
+            ecg_mean_sd.loc['lower', :],
+            alpha=value['alpha'],
+            label='Standard Deviation ' + key,
+        )
+
+    ax.set_xlabel('Time (milliseconds)', fontsize = fontsize['xlabel'])
+    ax.set_title(title, fontsize = fontsize['ax_title'])
     fig.show()
