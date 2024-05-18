@@ -2,3 +2,8 @@
 ###################
 data*
 *.csv
+
+
+# Output directory #
+###################
+output/

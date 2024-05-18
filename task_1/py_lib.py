@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import neurokit2 as nk
 import custom_ecg_delineate as custom
+import tsfresh as tsf
 
 def pre_process_ecg(
         df: pd.DataFrame,
@@ -153,7 +154,7 @@ def mean_and_sd_df(
     sd_df = df.std(axis=0).to_frame().T
     sd_df.index = ['sd']
     return pd.concat([mean_df, sd_df])
-        
+   
 
 # def peaks_features(
 #         all_peaks_df: pd.DataFrame,
@@ -197,6 +198,96 @@ def merge_R_and_other_peaks(
         all_peaks_df[peak_type] = peak_index_df[peak_type]
     
     return all_peaks_df
+
+
+def tsfresh_features_extraction(
+        x_train_0_transfo: pd.DataFrame,
+        starting_point: int = 0,
+        window_size: int = 100,
+):
+    x_train_subset = x_train_0_transfo.iloc[:,starting_point:starting_point+window_size].copy()
+    x_train_subset['id'] = 1
+    extracted_features = tsf.extract_features(x_train_subset, column_id='id')
+    columns_list = list(extracted_features.columns)
+
+    heartbeat_idx_placeholder = []
+    metrics_by_htb_placeholder = {}
+    df_heartbeats_placeholder = []
+    for col_name in columns_list:
+        underscore_pos = col_name.find('__')
+        htb_idx = col_name[:underscore_pos]
+        heartbeat_idx_placeholder.append(htb_idx)
+        metric_df = extracted_features[[col_name]]
+        metric_df = metric_df.rename(columns={col_name: col_name[underscore_pos+2:]})
+        metric_df.index = [htb_idx]
+        if htb_idx in metrics_by_htb_placeholder:
+            metrics_by_htb_placeholder[htb_idx].append(metric_df)
+        else:
+            metrics_by_htb_placeholder[htb_idx] = [metric_df]
+    set_heartbeat_idx = set(heartbeat_idx_placeholder)
+
+    # Concatenate the Dataframes of each heartbeat
+    for htb_idx in set_heartbeat_idx:
+        df_heartbeats_placeholder.append(
+            pd.concat(metrics_by_htb_placeholder[htb_idx], axis=1)
+        )
+    
+    # Concatenate to obtain one dataframe
+    extracted_features_final = pd.concat(df_heartbeats_placeholder, axis=0)
+    return extracted_features_final
+
+
+def tsfresh_features_extraction_loop(
+        x_train_0_transfo: pd.DataFrame,
+        starting_point: int = 0,
+        window_size: int = 10,
+        n_loops: int = 10,
+):
+    for i in range(n_loops):
+        extracted_features_final = tsfresh_features_extraction(
+            x_train_0_transfo,
+            starting_point=starting_point,
+            window_size=window_size,
+        )
+        extracted_features_final.to_csv(
+            f'../output/cs_files_tsfresh/extracted_features_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+              index=True
+              )
+        starting_point += window_size
+
+import os 
+import glob 
+
+def join_all_features_csv_batches(
+    dir_path: str = '../output/cs_files_tsfresh/extracted_features_',
+    pull_all: boolean = False,
+    starting_point: int = 0,
+    window_size: int = 10,
+    n_loops: int = 10,
+):
+    # Initialize the final dataframe
+    df_placeholder = []
+
+    # Pull all what is in the directory (option 1)
+    if pull_all:
+        csv_files = glob.glob(os.path.join(dir_path, "*.csv"))
+        # loop over the list of csv files 
+        for f in csv_files: 
+            # read the csv file 
+            df_placeholder.append(pd.read_csv(f, index_col=0))
+
+    # Pull custom files (option 2)
+    else:
+        for i in range(n_loops):
+            extracted_features_subset = pd.read_csv(
+                f'{dir_path}{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+                index_col=0,
+            )
+            df_placeholder.append(extracted_features_subset)
+            final_df = pd.concat([final_df, extracted_features_subset], axis=1)
+            starting_point += window_size
+    return pd.concat(df_placeholder, axis=0)
+
 
 
 
