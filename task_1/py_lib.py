@@ -586,7 +586,6 @@ def adding_one_hot_encoded(
         # drop_one_category: bool = False,
         ):
     # We set drop_first=False when we want to select manually which dummy column to drop, to have a benchmark that makes sense.
-    print(df['Sex'].unique())
     df_hot = pd.get_dummies(df, columns=cols_obj_pure, drop_first=drop_first)
     print(list(df_hot.columns))
     if category_to_drop is not None:
@@ -597,6 +596,28 @@ def adding_one_hot_encoded(
     return df_hot, categorical_features, all_features
 
 
+def some_features_selection(
+    df: pd.DataFrame,
+    thresholds_n_nan=100,
+):
+    df_aux = df.copy()
+    # Drop columns with too many Nan
+    count_nan = df.isna().sum()
+    cols_to_drop = count_nan[count_nan > thresholds_n_nan].index
+    df_aux = df_aux.drop(columns=cols_to_drop)
+
+    # Drop columns with only one value (non-informative)
+    features_infos = features_information(df_aux)
+    cols_to_drop_non_informative = list(features_infos[features_infos['cardinality'] < 2].index)
+    df_aux = df_aux.drop(columns=cols_to_drop_non_informative)
+    return df_aux
 
 
+def features_information(df):
+    df_val_count = pd.DataFrame(columns = df.columns, index=['cardinality'])
+    for col in df.columns:
+        df_val_count.loc['cardinality', col] = len(df[col].value_counts())
+    df_val_count = df_val_count.T
+    df_val_count['cardinality'] = pd.to_numeric(df_val_count['cardinality'])
+    return df_val_count.sort_values(by=['cardinality'], ascending=False)
 

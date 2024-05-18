@@ -83,6 +83,7 @@ def dist_mult_plots(
     figsize: tuple = (7, 7),
     ncols: int = 2,
     bar_plot: bool = False,
+    rotate_bar_ticks: int = None,
     fontsize: dict = {
         'ax_title': 12,
     },
@@ -110,6 +111,8 @@ def dist_mult_plots(
                 series_frequency.values,
                 label=series_frequency.index,
             )
+            if rotate_bar_ticks is not None:
+                axs[i,j].tick_params(axis='x', labelrotation=rotate_bar_ticks)
         else:
             bins = 'auto'
             if custom_bins is not None and col in custom_bins:
