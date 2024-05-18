@@ -103,6 +103,76 @@ def create_heartbeats_dictionary(
     return epochs_dict, total_infos_dict, r_peaks_df, ecg_cleaned_df
 
 
+def heartbeats_other_peaks_extraction_loop(
+        ecg_cleaned_df: pd.DataFrame, # Better if index already sorted
+        r_peaks_df: pd.DataFrame,
+        sampling_rate: int = 125,
+        starting_point: int = 0,
+        window_size: int = 10,
+        n_loops: int = 10,
+):
+    for i in range(n_loops):
+        # Building the subsets df
+        ecg_subset = ecg_cleaned_df.iloc[starting_point:starting_point+window_size, :].copy()
+        ecg_subset_idx = ecg_subset.index
+        r_peaks_subset = r_peaks_df.loc[ecg_subset_idx].copy()
+        #Extracting the other peaks
+        (waves_sum_df, peak_index_df, idx_multiple_peaks_waves) = heartbeats_other_peaks(
+            ecg_subset,
+            r_peaks_subset,
+            sampling_rate=sampling_rate,
+        )
+        waves_sum_df.to_csv(
+            f'../output/heartbeats_extracted/waves/waves_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+              index=True
+              )
+        peak_index_df.to_csv(
+            f'../output/heartbeats_extracted/peak_index/peak_index_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+              index=True
+              )
+        starting_point += window_size
+
+def download_other_peaks_csv_batches(
+    dir_path: str = '../output/heartbeats_extracted/',
+    types_of_files=['waves', 'peak_index'],
+    pull_all: bool = False,
+    starting_point: int = 0,
+    window_size: int = 10,
+    n_loops: int = 10,
+):
+    # Initialize
+    df_placeholder = {}
+    
+    # Pull all what is in the directory (option 1)
+    if pull_all:
+        for type_of_file in types_of_files:
+            df_placeholder[type_of_file] = []
+            csv_files = glob.glob(os.path.join(dir_path, type_of_file, "*.csv"))
+            print(os.path.join(dir_path, type_of_file, "*.csv"))
+            # loop over the list of csv files 
+            for f in csv_files: 
+                print(f)
+                # read the csv file 
+                df_placeholder[type_of_file].append(pd.read_csv(f, index_col=['heartbeat_idx']))
+
+    # # Pull custom files (option 2)
+    # else:
+    #     for i in range(n_loops):
+    #         extracted_features_subset = pd.read_csv(
+    #             f'{dir_path}{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+    #             index_col=0,
+    #         )
+    #         print(f'{dir_path}{str(starting_point)}_{str(starting_point+window_size-1)}.csv')
+    #         df_placeholder.append(extracted_features_subset)
+    #         starting_point += window_size
+    final_df = {}
+    for type_of_file in types_of_files:
+        final_df[type_of_file] = pd.concat(df_placeholder[type_of_file], axis=0)
+        # final_df.index.name='heartbeat_idx'
+        final_df[type_of_file] = final_df[type_of_file].sort_index()
+    return final_df
+
+
 def heartbeats_other_peaks(
         ecg_cleaned_df: pd.DataFrame,
         r_peaks_df: pd.DataFrame,
@@ -260,7 +330,7 @@ import glob
 
 def join_all_features_csv_batches(
     dir_path: str = '../output/cs_files_tsfresh/extracted_features_',
-    pull_all: boolean = False,
+    pull_all: bool = False,
     starting_point: int = 0,
     window_size: int = 10,
     n_loops: int = 10,
@@ -271,8 +341,10 @@ def join_all_features_csv_batches(
     # Pull all what is in the directory (option 1)
     if pull_all:
         csv_files = glob.glob(os.path.join(dir_path, "*.csv"))
+        print(os.path.join(dir_path, "*.csv"))
         # loop over the list of csv files 
         for f in csv_files: 
+            print(f)
             # read the csv file 
             df_placeholder.append(pd.read_csv(f, index_col=0))
 
@@ -283,10 +355,14 @@ def join_all_features_csv_batches(
                 f'{dir_path}{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
                 index_col=0,
             )
+            print(f'{dir_path}{str(starting_point)}_{str(starting_point+window_size-1)}.csv')
             df_placeholder.append(extracted_features_subset)
-            final_df = pd.concat([final_df, extracted_features_subset], axis=1)
             starting_point += window_size
-    return pd.concat(df_placeholder, axis=0)
+    
+    final_df = pd.concat(df_placeholder, axis=0)
+    final_df.index.name='heartbeat_idx'
+    final_df = final_df.sort_index()
+    return final_df
 
 
 
