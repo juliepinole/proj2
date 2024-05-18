@@ -308,6 +308,7 @@ def tsfresh_features_extraction_loop(
         starting_point: int = 0,
         window_size: int = 10,
         n_loops: int = 10,
+        dir_path: str = '../output/cs_files_tsfresh/extracted_features',
 ):
     for i in range(n_loops):
         extracted_features_final = tsfresh_features_extraction(
@@ -316,7 +317,7 @@ def tsfresh_features_extraction_loop(
             window_size=window_size,
         )
         extracted_features_final.to_csv(
-            f'../output/cs_files_tsfresh/extracted_features_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+            f'{dir_path}_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
               index=True
               )
         starting_point += window_size

@@ -1,9 +1,10 @@
 # Data files #
 ###################
 data*
-*.csv
+# *.csv
 
 
 # Output directory #
 ###################
 output/
+data_proj2/
