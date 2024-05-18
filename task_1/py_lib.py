@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 import neurokit2 as nk
+import custom_ecg_delineate as custom
 
 def pre_process_ecg(
         df: pd.DataFrame,
@@ -101,6 +102,49 @@ def create_heartbeats_dictionary(
     return epochs_dict, total_infos_dict, r_peaks_df, ecg_cleaned_df
 
 
+def heartbeats_other_peaks(
+        ecg_cleaned_df: pd.DataFrame,
+        r_peaks_df: pd.DataFrame,
+        sampling_rate: int = 125,
+    ):
+    waves_sum_placeholder = []
+    peak_index_placeholder = []
+    idx_multiple_peaks_waves = []
+    for idx, row_ecg_cleaned in ecg_cleaned_df.iterrows():
+        # Find the corresponding r_peaks
+        row_r_peaks = r_peaks_df.loc[idx]
+        # Compute the peaks
+        waves , signals = custom.ecg_delineate_custom(
+            row_ecg_cleaned,
+            row_r_peaks,
+            sampling_rate=sampling_rate,
+            method='peak',
+            )
+        # Create the waves_sum content
+        waves_sum = waves.sum()
+        if waves_sum.values.max() > 1:
+            idx_multiple_peaks_waves.append(idx)
+        waves_sum.name = idx
+        waves_sum_placeholder.append(waves_sum)
+        # isolate the index of the peaks
+        signals_aux_dict = {}
+        for peak_type, peak_index in signals.items():
+            signals_aux_dict[peak_type] = peak_index[0]
+            signals_df = pd.DataFrame(signals_aux_dict, index=[idx])
+        peak_index_placeholder.append(signals_df)
+        
+    # Concatenate the final dataframes
+    waves_sum_df = pd.concat(waves_sum_placeholder, axis=1)
+    waves_sum_df = waves_sum_df.T
+    waves_sum_df.index.name = 'heartbeat_idx'
+    peak_index_df = pd.concat(peak_index_placeholder, axis=0)
+    peak_index_df.index.name = 'heartbeat_idx'
+    return (waves_sum_df,
+            peak_index_df,
+            idx_multiple_peaks_waves
+            )
+
+
 def mean_and_sd_df(
         df: pd.DataFrame,
 ):
@@ -110,4 +154,53 @@ def mean_and_sd_df(
     sd_df.index = ['sd']
     return pd.concat([mean_df, sd_df])
         
+
+# def peaks_features(
+#         all_peaks_df: pd.DataFrame,
+#         peaks_names_dict = {
+#             'ECG_R_Peaks': 'R',
+#             'ECG_S_Peaks': 'S',
+#             'ECG_T_Peaks': 'T',
+#             'ECG_T_Offsets': 'T_Offsets',
+#         },
+#         ):
+#     # Present the peaks data in a dataframe
+#     df_peaks = 
+
+#     # Compute the intervals of interest
+#     # df_peaks['QRS_complex'] = 
+#     # df_peaks['RS'] = 
+#     # df_peaks['PR_interval'] = 
+#     # df_peaks['PR_segment'] = 
+#     # df_peaks['ST_segment'] = 
+#     # df_peaks['QT_interval'] = 
+
+#     return df_peaks
+
+
+def merge_R_and_other_peaks(
+    r_peaks_df,
+    peak_index_df,
+    other_peaks_to_keep = ['ECG_S_Peaks', 'ECG_T_Peaks', 'ECG_T_Offsets'],
+        
+):
+    # R_peaks
+    r_peaks_placeholder = {}
+    for heartbeat_idx, r_peak_series in r_peaks_df.iterrows():
+        mask = (r_peak_series == 1)
+        r_peak_idx = r_peak_series.index[mask]
+        r_peaks_placeholder[heartbeat_idx] = r_peak_idx
+    all_peaks_df = pd.DataFrame(r_peaks_placeholder, index=['ECG_R_Peaks']).T
+
+    # other peaks
+    for peak_type in other_peaks_to_keep:
+        all_peaks_df[peak_type] = peak_index_df[peak_type]
+    
+    return all_peaks_df
+
+
+
+
+
+
 
