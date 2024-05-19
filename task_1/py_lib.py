@@ -18,6 +18,7 @@ def pre_process_ecg(
         test_size: float = 0.2,
         random_state: int = 42,
         split_data: bool = True,
+        with_lstm_transfo: bool = False,
 ):
     """
     Pre-process the ecg.
@@ -42,8 +43,33 @@ def pre_process_ecg(
         y_train_0 = df_label
         x_test_0 = None
         y_test_0 = None
-
-    return x_train_0, x_test_0, y_train_0, y_test_0
+    
+    if with_lstm_transfo:
+        lstm_input = {}
+        for key, data_item in {
+            'features': {
+                'x_train': x_train_0,
+                'x_test': x_test_0,               
+            },
+            'labels': {
+                'y_train': y_train_0,
+                'y_test': y_test_0,                
+            },
+            }.items():
+            for second_key, data in data_item.items():
+                if key == 'features':
+                    if data is not None:
+                        data_array = data.to_numpy()
+                        data_array = data_array.reshape([data.shape[0], data.shape[1], 1])
+                        lstm_input[second_key] = data_array
+                if key == 'labels':
+                    if data is not None:
+                        data_array = data.to_numpy()
+                        data_array = data_array#.flatten()
+                        lstm_input[second_key] = data_array
+        return x_train_0, x_test_0, y_train_0, y_test_0, lstm_input
+    else:
+        return x_train_0, x_test_0, y_train_0, y_test_0
 
 
 def select_one_row(
@@ -536,6 +562,15 @@ def pre_process_features(
         all_features,
         {'label_encoders': label_encoders, 'emb_dims': emb_dims}
         )
+
+
+def process_for_eval_from_single_proba_array(
+    y_pred_array: np.array,
+):
+    y_pred_tensor = torch.from_numpy(y_pred_array)
+    y_pred_round_tensor = y_pred_tensor.round()
+    y_pred_round = y_pred_round_tensor.detach().numpy()
+    return y_pred_tensor, y_pred_round, y_pred_round_tensor
 
 
 def encode_categorical_features(
