@@ -143,6 +143,7 @@ def heartbeats_other_peaks_extraction_loop(
         starting_point: int = 0,
         window_size: int = 10,
         n_loops: int = 10,
+        dir_path: str = '../output/heartbeats_extracted/',
 ):
     for i in range(n_loops):
         # Building the subsets df
@@ -156,11 +157,11 @@ def heartbeats_other_peaks_extraction_loop(
             sampling_rate=sampling_rate,
         )
         waves_sum_df.to_csv(
-            f'../output/heartbeats_extracted/waves/waves_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+            f'{dir_path}waves/waves_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
               index=True
               )
         peak_index_df.to_csv(
-            f'../output/heartbeats_extracted/peak_index/peak_index_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
+            f'{dir_path}peak_index/peak_index_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
               index=True
               )
         starting_point += window_size
