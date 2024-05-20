@@ -12,6 +12,8 @@ from collections import namedtuple
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
 
+from tensorflow.keras.utils import to_categorical
+
 def pre_process_ecg(
         df: pd.DataFrame,
         label_col_pos: int = -1,
@@ -19,6 +21,9 @@ def pre_process_ecg(
         random_state: int = 42,
         split_data: bool = True,
         with_lstm_transfo: bool = False,
+        for_keras: bool = False,
+        n_classes: int = 4,
+        output_torch_for_eval: bool = False,
 ):
     """
     Pre-process the ecg.
@@ -44,6 +49,30 @@ def pre_process_ecg(
         x_test_0 = None
         y_test_0 = None
     
+    if for_keras:
+        # Features
+        x_train_0 = x_train_0.to_numpy()
+        if x_test_0 is not None:
+            x_test_0 = x_test_0.to_numpy()
+        # Labels
+        y_train_0 = y_train_0.to_numpy()
+        y_train_0 = to_categorical(y_train_0, num_classes=n_classes)
+        if y_test_0 is not None:
+            y_test_0 = y_test_0.to_numpy()
+            y_test_0 = to_categorical(y_test_0, num_classes=n_classes)
+
+
+    # Step 4: Create Tensors
+    if output_torch_for_eval:
+        torch_input = {
+            'x_train': torch.from_numpy(x_train_0),
+            'y_train': torch.from_numpy(y_train_0),
+        }
+        if split_data:
+            torch_input['x_test'] = torch.from_numpy(x_test_0)
+            torch_input['y_test'] = torch.from_numpy(y_test_0)
+
+    
     if with_lstm_transfo:
         lstm_input = {}
         for key, data_item in {
@@ -67,9 +96,15 @@ def pre_process_ecg(
                         data_array = data.to_numpy()
                         data_array = data_array#.flatten()
                         lstm_input[second_key] = data_array
-        return x_train_0, x_test_0, y_train_0, y_test_0, lstm_input
+        if output_torch_for_eval:
+            return x_train_0, x_test_0, y_train_0, y_test_0, lstm_input, torch_input
+        else:
+            return x_train_0, x_test_0, y_train_0, y_test_0, lstm_input
     else:
-        return x_train_0, x_test_0, y_train_0, y_test_0
+        if output_torch_for_eval:
+            return x_train_0, x_test_0, y_train_0, y_test_0, torch_input
+        else:
+            return x_train_0, x_test_0, y_train_0, y_test_0
 
 
 def select_one_row(
@@ -293,41 +328,73 @@ def merge_R_and_other_peaks(
     return all_peaks_df
 
 
+def stacking_for_tsfresh(
+        df: pd.DataFrame,
+):
+    df_stacked = df.stack().to_frame()
+    df_stacked.index.names=['time_step', 'heartbeat_idx']
+    df_stacked = df_stacked.sort_index(level='heartbeat_idx')
+    df_stacked = df_stacked.reset_index(level=-1, drop=False)
+    return df_stacked
+
+
 def tsfresh_features_extraction(
         x_train_0_transfo: pd.DataFrame,
         starting_point: int = 0,
         window_size: int = 100,
+        only_relevant: bool = False,
+        y_vector: pd.Series = None,
 ):
-    x_train_subset = x_train_0_transfo.iloc[:,starting_point:starting_point+window_size].copy()
-    x_train_subset['id'] = 1
-    extracted_features = tsf.extract_features(x_train_subset, column_id='id')
+    counter = 1
+    if only_relevant:
+        y_vector_subset = y_vector.iloc[starting_point:starting_point+window_size].copy()
+        while (len(set(y_vector_subset)) <2 and counter < 1000):
+            print(f'Warning: only one class in the subset {starting_point} to {starting_point+counter*window_size-1}')
+            counter +=1
+            y_vector_subset = y_vector.iloc[starting_point:starting_point+counter*window_size].copy()
+        x_train_subset = x_train_0_transfo.iloc[:,starting_point:starting_point+counter*window_size].copy()
+        x_train_subset = stacking_for_tsfresh(x_train_subset)
+        extracted_features = tsf.extract_relevant_features(
+            x_train_subset,
+            y_vector_subset,
+            column_id='heartbeat_idx',
+            )
+    else:
+        x_train_subset = x_train_0_transfo.iloc[:,starting_point:starting_point+window_size].copy()
+        x_train_subset = stacking_for_tsfresh(x_train_subset)
+        extracted_features = tsf.extract_features(x_train_subset, column_id='heartbeat_idx')
     columns_list = list(extracted_features.columns)
 
-    heartbeat_idx_placeholder = []
-    metrics_by_htb_placeholder = {}
-    df_heartbeats_placeholder = []
-    for col_name in columns_list:
-        underscore_pos = col_name.find('__')
-        htb_idx = col_name[:underscore_pos]
-        heartbeat_idx_placeholder.append(htb_idx)
-        metric_df = extracted_features[[col_name]]
-        metric_df = metric_df.rename(columns={col_name: col_name[underscore_pos+2:]})
-        metric_df.index = [htb_idx]
-        if htb_idx in metrics_by_htb_placeholder:
-            metrics_by_htb_placeholder[htb_idx].append(metric_df)
-        else:
-            metrics_by_htb_placeholder[htb_idx] = [metric_df]
-    set_heartbeat_idx = set(heartbeat_idx_placeholder)
+    # heartbeat_idx_placeholder = []
+    # metrics_by_htb_placeholder = {}
+    # df_heartbeats_placeholder = []
 
-    # Concatenate the Dataframes of each heartbeat
-    for htb_idx in set_heartbeat_idx:
-        df_heartbeats_placeholder.append(
-            pd.concat(metrics_by_htb_placeholder[htb_idx], axis=1)
-        )
+    columns_list_updated = [x[3:] for x in columns_list]
+    extracted_features.columns = columns_list_updated
+    extracted_features.index.name='heartbeat_idx'
+    # for col_name in columns_list:
+    #     underscore_pos = col_name.find('__')
+    #     htb_idx = col_name[:underscore_pos]
+    #     heartbeat_idx_placeholder.append(htb_idx)
+    #     metric_df = extracted_features[[col_name]]
+    #     metric_df = metric_df.rename(columns={col_name: col_name[underscore_pos+2:]})
+    #     metric_df.index = [htb_idx]
+    #     if htb_idx in metrics_by_htb_placeholder:
+    #         metrics_by_htb_placeholder[htb_idx].append(metric_df)
+    #     else:
+    #         metrics_by_htb_placeholder[htb_idx] = [metric_df]
+    # set_heartbeat_idx = set(heartbeat_idx_placeholder)
+
+    # # Concatenate the Dataframes of each heartbeat
+    # for htb_idx in set_heartbeat_idx:
+    #     df_heartbeats_placeholder.append(
+    #         pd.concat(metrics_by_htb_placeholder[htb_idx], axis=1)
+    #     )
     
-    # Concatenate to obtain one dataframe
-    extracted_features_final = pd.concat(df_heartbeats_placeholder, axis=0)
-    return extracted_features_final
+    # # Concatenate to obtain one dataframe
+    # extracted_features_final = pd.concat(df_heartbeats_placeholder, axis=0)
+    # return extracted_features_final, counter
+    return extracted_features, counter
 
 
 def tsfresh_features_extraction_loop(
@@ -336,18 +403,25 @@ def tsfresh_features_extraction_loop(
         window_size: int = 10,
         n_loops: int = 10,
         dir_path: str = '../output/cs_files_tsfresh/extracted_features',
-):
+        only_relevant: bool = False,
+        y_vector: pd.Series = None,
+):  
+    y_vector_to_use = y_vector.copy()
+    if only_relevant:
+        y_vector_to_use = y_vector_to_use.sample(frac=1)
     for i in range(n_loops):
-        extracted_features_final = tsfresh_features_extraction(
+        extracted_features_final, n_windows = tsfresh_features_extraction(
             x_train_0_transfo,
             starting_point=starting_point,
             window_size=window_size,
+            only_relevant=only_relevant,
+            y_vector=y_vector_to_use,
         )
         extracted_features_final.to_csv(
             f'{dir_path}_{str(starting_point)}_{str(starting_point+window_size-1)}.csv',
               index=True
               )
-        starting_point += window_size
+        starting_point += window_size * n_windows
 
 
 def join_all_features_csv_batches(
@@ -382,7 +456,7 @@ def join_all_features_csv_batches(
             starting_point += window_size
     
     final_df = pd.concat(df_placeholder, axis=0)
-    final_df.index.name='heartbeat_idx'
+    # final_df.index.name='heartbeat_idx'
     final_df = final_df.sort_index()
     return final_df
 

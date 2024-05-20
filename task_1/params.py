@@ -28,6 +28,9 @@ _PERCENT_ZERO = [
     '1',
     '1.0',
     '0.0',
+    '2.0',
+    '3.0',
+    '4.0',
 ]
 _PERCENT_ONE = [
     'Accuracy',
