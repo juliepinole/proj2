@@ -348,6 +348,7 @@ def tsfresh_features_extraction(
 ):
     counter = 1
     if only_relevant:
+        raise ValueError("This part of the code is incorrect, putting a ValueError until I correct it. The x vector subset should not be selected with iloc, but with the indexes corresponding to those in the y vector.")
         y_vector_subset = y_vector.iloc[starting_point:starting_point+window_size].copy()
         while (len(set(y_vector_subset)) <2 and counter < 1000):
             print(f'Warning: only one class in the subset {starting_point} to {starting_point+counter*window_size-1}')
