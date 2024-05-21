@@ -89,6 +89,8 @@ def dist_mult_plots(
     },
     custom_bins: dict = None,
     rename_cols_for_title = None,
+    custom_messages = None,
+    vert_placement_corr: float = 0.8,
     **kwargs,
     ):
     n_var = len(cols)
@@ -106,11 +108,26 @@ def dist_mult_plots(
         if bar_plot:
             to_plot = df[col].astype(str) if is_numeric_dtype(df[col]) else df[col]
             series_frequency = to_plot.value_counts(dropna=False)
-            axs[i,j].bar(
+            bars = axs[i,j].bar(
                 series_frequency.index,
                 series_frequency.values,
                 label=series_frequency.index,
             )
+            if custom_messages is not None:
+                custom_messages_list = []
+                for lab in series_frequency.index:
+                    custom_messages_list.append(f'{custom_messages[lab]:.0%}')
+                for bar, message in zip(bars, custom_messages_list):
+                    height = bar.get_height()  # Get the height of the bar
+                    axs[i,j].text(
+                        bar.get_x() + bar.get_width() / 2,  # x-coordinate: center of the bar
+                        height*vert_placement_corr,  # y-coordinate: top of the bar
+                        message,  # The custom message
+                        ha='center',  # Horizontal alignment
+                        va='bottom',  # Vertical alignment
+                        fontweight='bold',
+                        color='w'
+                    )                
             if rotate_bar_ticks is not None:
                 axs[i,j].tick_params(axis='x', labelrotation=rotate_bar_ticks)
         else:

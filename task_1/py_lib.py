@@ -12,6 +12,7 @@ from collections import namedtuple
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
 
+import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 
 def pre_process_ecg(
@@ -731,3 +732,60 @@ def features_information(df):
     df_val_count['cardinality'] = pd.to_numeric(df_val_count['cardinality'])
     return df_val_count.sort_values(by=['cardinality'], ascending=False)
 
+
+
+def custom_model_summary(model):
+    # Print model name
+    print(f'Model: "{model.name}"')
+    
+    # Print the model's layers and trainable status
+    print('Layer (type)                           Param #          Trainable')
+    print('=================================================================')
+    
+    total_params = 0
+    trainable_params = 0
+    non_trainable_params = 0
+    
+    for layer in model.layers:
+        layer_name = layer.name
+        layer_type = layer.__class__.__name__
+        # output_shape = layer.output_shape
+        param_count = layer.count_params()
+        trainable = layer.trainable
+        
+        total_params += param_count
+        if trainable:
+            trainable_params += param_count
+        else:
+            non_trainable_params += param_count
+        
+        print(f'{layer_name:<35} {param_count:<21} {trainable}')
+    
+    print('=================================================================')
+    print(f'Total params: {total_params}')
+    print(f'Trainable params: {trainable_params}')
+    print(f'Non-trainable params: {non_trainable_params}')
+    print('=================================================================')
+
+from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
+
+
+def compute_performance_metrics(
+    y_true,
+    y_pred_class,
+):
+    acc = accuracy_score(y_true, y_pred_class, normalize = True)  
+    bal_acc=balanced_accuracy_score(y_true,y_pred_class)
+    # Calculate F1 score for each class
+    f1_class_0 = f1_score(y_true, y_pred_class, pos_label=0)
+    f1_class_1 = f1_score(y_true, y_pred_class, pos_label=1)
+    # f1 = f1_score(y_pred_class, y_true, average='macro')
+    summary_metrics = pd.DataFrame(
+        data=[acc, bal_acc, f1_class_0, f1_class_1],
+        index=['Accuracy', 'Balanced Accuracy', 'F1 Class 0', 'F1 Class 1'],
+        columns=['metrics'],
+        ).T
+    return summary_metrics
+
+    

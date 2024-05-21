@@ -36,6 +36,8 @@ _PERCENT_ONE = [
     'Accuracy',
     'Balanced Accuracy',
     'F1 Score',
+    'F1 Class 0',
+    'F1 Class 1',
 ]
 _PERCENT_TWO = [
 ]
