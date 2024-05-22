@@ -11,9 +11,12 @@ This repository is still WIP and does not comply with Python style guidelines. I
 
 *  **Q1**: [Exploratory Analysis](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q1_Exploration.ipynb)
 *  **Q2**: [Classic ML Methods](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_Classic_ML_Models.ipynb) , [Features Extraction](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_features_extraction.ipynb)
+> [!NOTE]    
+> The features extraction takes some time, this is why they are done separately in the second colab [Features Extraction](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_features_extraction.ipynb) (two extractions, one for the train set, the other one for the test set). They are then imported back in the first colab ([Classic ML Methods](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_Classic_ML_Models.ipynb)). These extracted features are uplaoded top github so the path should match and there should not be any action required. See:
+> cc
 *  **Q3**: [LSTM](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q3_LSTM.ipynb)
 *  **Q4**: [CNN](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q4_CNN.ipynb)
-*  **Q5**: UNfinished.
+*  **Q5**: Unfinished.
 
 ###  Part 2: Transfer and Representation Learning
 *  **Q1**: [Classic ML Methods + encoder training - MIT BIH Dataset](https://github.com/juliepinole/proj2/blob/main/task_1/Part_2_Q1_Classic_ML.ipynb)
@@ -24,36 +27,13 @@ This repository is still WIP and does not comply with Python style guidelines. I
 ## Virtual Environment
 
 > [!IMPORTANT]
-> The result of `pip list` in the virtual environment that I used in in the file [venv.txt](https://github.com/juliepinole/eth/blob/main/healthcare/venv.txt).
+> The result of `pip list` in the virtual environment that I used in in the file [requirements.txt](https://github.com/juliepinole/proj2/blob/main/requirements.txt).
 
 > [!NOTE]
-> I made some changes to some [SHAP](https://shap.readthedocs.io/en/latest/) package core code that I did not manage to revert. I thus created a second virtual environment to reinstall [SHAP](https://shap.readthedocs.io/en/latest/) and to run the SHAP section of the [Heart_MLP](https://github.com/juliepinole/eth/blob/main/healthcare/heart/Heart_MLP.ipynb) notebook. `pip list` outcome in the file [venv_2.txt](https://github.com/juliepinole/eth/blob/main/healthcare/venv_2.txt) However I doubt there is any difference with the main environment [venv.txt](https://github.com/juliepinole/eth/blob/main/healthcare/venv.txt) which is what I used everywhere (except that [venv_2.txt](https://github.com/juliepinole/eth/blob/main/healthcare/venv_2.txt) is a strict subset of [venv.txt](https://github.com/juliepinole/eth/blob/main/healthcare/venv.txt). I just installed there the few packages needed to run the section of interest. I thus think it can be ignored.
+> I made some changes to some 
 
 ## Data import in notebooks
 
-* **Heart Disease**: there is no action required, the relevant csv files are in the same folder as the notebookds and are imported through pd.read_csv().
 > [!IMPORTANT]
-> * **Chest Xrays**: [ACTION REQUIRED]. The path to the data have to be filled as the first argument of the function lib.get_training_data() as in orange in the image below:
->   ![alt text](image.png)
-
-
-> [!IMPORTANT]
-> Data folders need to have the same structure as in the initial dataset. From the path filled above, two folders need to be present:
->
-> *  PNEUMONIA: with the examples of xrays from patients suffering from pneumonia.
-> *  NORMAL: with the examples of xrays from healthy patients.
-
-
-## Parameters
-
-Each notebook has a cell declaring a class of parameters (see image below), which are then potentially called and changed across the notebook. 
-
-![alt text](image-1.png)
-
-I have set the default value of the parameters to the value that I used eventually, so in principle no change of parameter is needed at all, but if need be, parameters changes can be performed easily. See example:
-
-![alt text](image-2.png)
-
-![alt text](image-3.png)
-
-![alt text](image-4.png)
+> * **Chest Xrays**: [ACTION REQUIRED]. I did not upload the data to github as I thing that gituhub was complaining about the size. Therefore the paths to the data (in each colab) have to be filled as in orange in the image below:
+>   ![image](https://github.com/juliepinole/proj2/assets/166155962/c1db62e4-d000-4879-9435-e181657fa8d2)
