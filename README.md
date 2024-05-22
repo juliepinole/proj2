@@ -13,7 +13,8 @@ This repository is still WIP and does not comply with Python style guidelines. I
 *  **Q2**: [Classic ML Methods](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_Classic_ML_Models.ipynb) , [Features Extraction](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_features_extraction.ipynb)
 > [!NOTE]    
 > The features extraction takes some time, this is why they are done separately in the second colab [Features Extraction](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_features_extraction.ipynb) (two extractions, one for the train set, the other one for the test set). They are then imported back in the first colab ([Classic ML Methods](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_Classic_ML_Models.ipynb)). These extracted features are uplaoded top github so the path should match and there should not be any action required. See:
-> cc
+> ![image](https://github.com/juliepinole/proj2/assets/166155962/9625efc2-6965-45ee-8379-e694817c4650)
+
 *  **Q3**: [LSTM](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q3_LSTM.ipynb)
 *  **Q4**: [CNN](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q4_CNN.ipynb)
 *  **Q5**: Unfinished.
@@ -29,11 +30,9 @@ This repository is still WIP and does not comply with Python style guidelines. I
 > [!IMPORTANT]
 > The result of `pip list` in the virtual environment that I used in in the file [requirements.txt](https://github.com/juliepinole/proj2/blob/main/requirements.txt).
 
-> [!NOTE]
-> I made some changes to some 
-
 ## Data import in notebooks
 
 > [!IMPORTANT]
-> * **Chest Xrays**: [ACTION REQUIRED]. I did not upload the data to github as I thing that gituhub was complaining about the size. Therefore the paths to the data (in each colab) have to be filled as in orange in the image below:
+> **[ACTION REQUIRED]**. I did not upload the data to github as I thing that gituhub was complaining about the size. Therefore the paths to the data (in each colab) have to be filled as in orange in the image below:
 >   ![image](https://github.com/juliepinole/proj2/assets/166155962/c1db62e4-d000-4879-9435-e181657fa8d2)
+
