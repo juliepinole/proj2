@@ -7,14 +7,19 @@ This repository is still WIP and does not comply with Python style guidelines. I
 
 ## Notebooks by questions
 
-###  Heart Disease
+###  Part 1: Supervised Learning on Time Series
 
-*  **Q1, Q2**: [Heart_explo_and Logistic](https://github.com/juliepinole/eth/blob/main/healthcare/heart/Heart_explo_and%20Logistic.ipynb)
-*  **Q3**: [Heart_MLP](https://github.com/juliepinole/eth/blob/main/healthcare/heart/Heart_MLP.ipynb)
-*  **Q4**: [Heart_explo_NAM](https://github.com/juliepinole/eth/blob/main/healthcare/heart/Heart_explo_NAM.ipynb)
-###  Chest Xrays
-*  **Q1, Q2**: [Chest_explo_and_cnn](https://github.com/juliepinole/eth/blob/main/healthcare/chest/Chest_explo_and_cnn.ipynb)
-*  **Q3, Q4**: [Chest_interpretability](https://github.com/juliepinole/eth/blob/main/healthcare/chest/Chest_interpretability.ipynb)
+*  **Q1**: [Exploratory Analysis](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q1_Exploration.ipynb)
+*  **Q2**: [Classic ML Methods](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_Classic_ML_Models.ipynb) , [Features Extraction](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q2_features_extraction.ipynb)
+*  **Q3**: [LSTM](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q3_LSTM.ipynb)
+*  **Q4**: [CNN](https://github.com/juliepinole/proj2/blob/main/task_1/Part_1_Q4_CNN.ipynb)
+*  **Q5**: UNfinished.
+
+###  Part 2: Transfer and Representation Learning
+*  **Q1**: [Classic ML Methods + encoder training - MIT BIH Dataset](https://github.com/juliepinole/proj2/blob/main/task_1/Part_2_Q1_Classic_ML.ipynb)
+*  **Q2**: [Representation Learning](https://github.com/juliepinole/proj2/blob/main/task_1/Part_2_Q2_Representation.ipynb)
+*  **Q3**: [Visualization](https://github.com/juliepinole/proj2/blob/main/task_1/Part_2_Q3_Visualization.ipynb)
+*  **Q4**: [Fine_tuning](https://github.com/juliepinole/proj2/blob/main/task_1/Part_2_Q4_Fine_Tuning.ipynb)
 
 ## Virtual Environment
 
