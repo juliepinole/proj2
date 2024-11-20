@@ -789,4 +789,15 @@ def compute_performance_metrics(
         ).T
     return summary_metrics
 
+
+def print_attributes(obj):
+    attributes = dir(obj)
+    for attr in attributes:
+        if not attr.startswith('__'):
+            try:
+                value = getattr(obj, attr)
+                print(f"{attr}: {value}")
+            except AttributeError:
+                print(f"{attr}: <no access>")
+
     
