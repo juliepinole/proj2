@@ -1,6 +1,8 @@
 > [!WARNING]
 > WIP.
+> 
 > Reproducing Task 2 of Project 2.
+> 
 > This folder is still WIP and does not comply with Python style guidelines. 
 
 
