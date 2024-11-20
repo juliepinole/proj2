@@ -6,6 +6,10 @@
 
 # Project ECG (Project 2): Time Series and Representation Learning
 
+In this part, we explore how to **leverage information from the larger MIT-BIH database to improve learning on the smaller PTB dataset**.
+  *  In *transfer learning*, we use representations from supervised learning on a related but distinct task (here, arrhythmia classification).
+  *  In *representation learning*, we use unsupervised learning strategies.
+
 ## Notebooks by questions
 
 > [!IMPORTANT]
